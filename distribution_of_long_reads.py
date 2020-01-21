@@ -2,9 +2,12 @@ import re
 import matplotlib.pyplot as plt
 
 # Read the Fasta file containing long reads
-file_contents = open('data.fastq' , 'r').read()
+file = open('dataset/m54238_180901_011437.Q20.fastq' , 'r')
+file_contents = file.read()
 
 elements = file_contents.split('\n')
+
+file.close()
 
 # Store the ID and Reads in a dictionary
 id_read_dict = {}
@@ -17,13 +20,16 @@ for i in range(len(elements)):
         continue
 
 # Print the ID's along with reads
-for i in id_read_dict:
-    print(i, id_read_dict[i])
+#for i in id_read_dict:
+#    print(i, id_read_dict[i])
 
 # Plot the distribution of the long read lengths in the fasta file
 read_length_list = []
 for i in id_read_dict:
-    read_length_list.append(len(id_read_dict[i][0]))
+    if len(id_read_dict[i]) == 0:
+        read_length_list.append(0)
+    else:
+        read_length_list.append(len(id_read_dict[i][0]))
 
 read_length_counter = {}
 for i in read_length_list:
