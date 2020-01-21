@@ -30,6 +30,9 @@ for i in read_length_list:
     read_length_counter[i] = read_length_list.count(i)
 
 plt.plot(list(read_length_counter.keys()), list(read_length_counter.values()))
+plt.title('Distribution of sequence lenghts over all sequences')
+plt.xlabel('Length of long reads')
+plt.ylabel('Frequency')
 plt.show()
 
 
