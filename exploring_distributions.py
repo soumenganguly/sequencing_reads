@@ -1,8 +1,9 @@
 # Create a random distribution, uniform distribution and normal distribution 
 import numpy as np
-from scipy.stats import uniform
+from scipy.stats import uniform, norm
 import seaborn as sns
 import matplotlib.pyplot as plt
+from scipy.stats import truncnorm
 
 sns.set(rc={'figure.figsize':(10,10)})
 
@@ -26,5 +27,27 @@ ax = sns.distplot(list_of_uniform_random_numbers,
                   hist_kws={"linewidth": 15,'alpha':1})
 ax.set(xlabel='Uniform Distribution ', ylabel='Frequency')
 plt.show()
-plt.plot(list_of_uniform_random_numbers, uniform.pdf(list_of_uniform_random_numbers))
+
+# Normal distribution
+data_normal = norm.rvs(size=1000, loc=0, scale=1)
+ax = sns.distplot(data_normal,
+                  bins=100,
+                  kde=True,
+                  color='skyblue',
+                  hist_kws={"linewidth": 15,'alpha':1})
+ax.set(xlabel='Normal Distribution ', ylabel='Frequency')
+plt.show()
+
+# Normal distribution in the range 90-110
+
+def get_truncated_norm(mean=0, sd=1, low=0, upp=10):
+    return truncnorm((low-mean)/sd, (upp-mean)/sd, loc=mean, scale=sd)
+
+data = get_truncated_norm(mean=95, sd=1, low=90, upp=110).rvs(1000)
+ax = sns.distplot(data,
+                  bins=100,
+                  kde=True,
+                  color='skyblue',
+                  hist_kws={"linewidth": 15,'alpha':1})
+ax.set(xlabel='Normal Distribution between 90-110', ylabel='Frequency')
 plt.show()
