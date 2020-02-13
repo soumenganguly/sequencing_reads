@@ -52,7 +52,7 @@ def sample_short_reads(mean, standard_dev, insertSize):
             if (readCounter + 2*int(normShortReadLen) + insertSize) <= longReadLength:
                 r1 = r[0][readCounter:readCounter+int(normShortReadLen)]    # The 0 is used to index the element stored as [[]] in r.
                 r2 = r[0][readCounter + int(normShortReadLen) + insertSize: readCounter + int(normShortReadLen) + insertSize + int(normShortReadLen)]
-                readList.append([r1,r2])
+                readList.append([r1+'_'+ids[temp]+'_'+str(readCounter),r2+'_'+ids[temp]+'_'+str(readCounter + int(normShortReadLen) + insertSize)])
                 boundary = readCounter + int(normShortReadLen) + insertSize + int(normShortReadLen)
                 readCounter += 1
                 continue
