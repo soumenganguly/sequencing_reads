@@ -36,7 +36,7 @@ def get_truncated_norm(m=0, sd=1, low=0, upp=10):
     return truncnorm((low-m)/sd, (upp-m)/sd, loc=m, scale=sd)
 
 
-def sample_short_reads(mean, standard_dev, insertSize):
+def sample_short_reads(mean, standard_dev, sreadLen):
     temp = 0
     for r in reads:
         longReadLength = len(r[0])
@@ -47,13 +47,13 @@ def sample_short_reads(mean, standard_dev, insertSize):
         boundary = 0
 
         while counter<=0:
-            normShortReadLen = get_truncated_norm(m=mean, sd=standard_dev, low=90, upp=110).rvs()
-            normDist.append(normShortReadLen)  # Normally distributed short read lengths
-            if (readCounter + 2*int(normShortReadLen) + insertSize) <= longReadLength:
-                r1 = r[0][readCounter:readCounter+int(normShortReadLen)]    # The 0 is used to index the element stored as [[]] in r.
-                r2 = r[0][readCounter + int(normShortReadLen) + insertSize: readCounter + int(normShortReadLen) + insertSize + int(normShortReadLen)]
-                readList.append([r1+'_'+ids[temp]+'_'+str(readCounter),r2+'_'+ids[temp]+'_'+str(readCounter + int(normShortReadLen) + insertSize)])
-                boundary = readCounter + int(normShortReadLen) + insertSize + int(normShortReadLen)
+            insertSize = get_truncated_norm(m=mean, sd=standard_dev, low=200, upp=300).rvs()
+            normDist.append(insertSize)  # Normally distributed short read lengths
+            if (readCounter + 2*sreadLen + int(insertSize)) <= longReadLength:
+                r1 = r[0][readCounter:readCounter+sreadLen]    # The 0 is used to index the element stored as [[]] in r.
+                r2 = r[0][readCounter + sreadLen + int(insertSize): readCounter + sreadLen + int(insertSize) + sreadLen]
+                readList.append([r1+'_'+ids[temp]+'_'+str(readCounter),r2+'_'+ids[temp]+'_'+str(readCounter + sreadLen + int(insertSize))])
+                boundary = readCounter + sreadLen + int(insertSize) + sreadLen
                 readCounter += 1
                 continue
             else:
@@ -67,7 +67,7 @@ def sample_short_reads(mean, standard_dev, insertSize):
     return allReadDict, normDist
 
 
-readDict, ndist = sample_short_reads(95,1,200)
+readDict, ndist = sample_short_reads(250,1,95)
 
 # PLot the distribution of short read lengths for one long read
 
