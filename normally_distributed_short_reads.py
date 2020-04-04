@@ -1,85 +1,58 @@
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio import SeqIO
+
 import numpy as np
 from scipy.stats import uniform, norm
-import seaborn as sns
-import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import re
-import json
 
+sequences = []
 
-fileLocation = open('data.fastq','r')
-fileContents = fileLocation.read()
-
-fileElements = fileContents.split('\n')
-
-fileLocation.close()
-
-allReadDict = {}
-
-# Store the ID and reads(long) in a dictionary
-
-oneReadDict = {}
-for i in range(len(fileElements)):
-    if re.match(r'^@', fileElements[i]):
-        oneReadDict[fileElements[i]] = []
-        if re.match(r'[A-Z]', fileElements[i+1]):
-            oneReadDict[fileElements[i]].append(fileElements[i+1])
-    else:
-        continue
-
-reads = oneReadDict.values()
-ids = list(oneReadDict.keys())
-
-# Sample short reads from normal distribution of read lengths
 
 def get_truncated_norm(m=0, sd=1, low=0, upp=10):
-    return truncnorm((low-m)/sd, (upp-m)/sd, loc=m, scale=sd)
+    return truncnorm((low - m) / sd, (upp - m) / sd, loc=m, scale=sd)
 
 
 def sample_short_reads(mean, standard_dev, sreadLen):
     temp = 0
-    for r in reads:
-        longReadLength = len(r[0])
-        normDist = []
-        readList = []
+    for record in SeqIO.parse('data.fastq', 'fastq'):
+        longReadLength = len(record.seq)
         counter = 0
         readCounter = 0
         boundary = 0
+        qual_score = record.letter_annotations['phred_quality']
 
-        while counter<=0:
+        while counter <= 0:
             insertSize = get_truncated_norm(m=mean, sd=standard_dev, low=200, upp=300).rvs()
-            normDist.append(insertSize)  # Normally distributed short read lengths
-            if (readCounter + 2*sreadLen + int(insertSize)) <= longReadLength:
-                r1 = r[0][readCounter:readCounter+sreadLen]    # The 0 is used to index the element stored as [[]] in r.
-                r2 = r[0][readCounter + sreadLen + int(insertSize): readCounter + sreadLen + int(insertSize) + sreadLen]
-                readList.append([r1+'_'+ids[temp]+'_'+str(readCounter),r2+'_'+ids[temp]+'_'+str(readCounter + sreadLen + int(insertSize))])
+            if (readCounter + 2 * sreadLen + int(insertSize)) <= longReadLength:
+                r1 = record.seq[
+                     readCounter:readCounter + sreadLen]  # The 0 is used to index the element stored as [[]] in r.
+                q1 = qual_score[readCounter:readCounter + sreadLen]
+                idr1 = record.id + '_' + str(readCounter) + '_' + 'r1'
+                sequences.append(SeqRecord(r1, id=idr1, letter_annotations={'phred_quality': q1}))
+
+                r2 = record.seq[
+                     readCounter + sreadLen + int(insertSize): readCounter + sreadLen + int(insertSize) + sreadLen]
+                q2 = qual_score[
+                     readCounter + sreadLen + int(insertSize): readCounter + sreadLen + int(insertSize) + sreadLen]
+                idr2 = record.id + '_' + str(readCounter + sreadLen + int(insertSize)) + '_' + 'r2'
+                sequences.append(SeqRecord(r2, id=idr2, letter_annotations={'phred_quality': q2}))
                 boundary = readCounter + sreadLen + int(insertSize) + sreadLen
                 readCounter += 1
                 continue
             else:
-                counter=1
-        allReadDict[ids[temp]] = readList
-        print(ids[temp])
-        temp+=1
-        print(len(readList))
+                counter = 1
+
+        temp += 1
         print(longReadLength, boundary)
-        print(longReadLength-boundary)
-    return allReadDict, normDist
+        print(longReadLength - boundary)
+    return sequences
 
 
-readDict, ndist = sample_short_reads(250,1,95)
+s = sample_short_reads(250, 1, 95)
 
-# PLot the distribution of short read lengths for one long read
+# Store the contents into a fastq file
 
-ax = sns.distplot(ndist,
-                  bins=100,
-                  kde=True,
-                  color='skyblue',
-                  hist_kws={"linewidth": 15,'alpha':1})
-ax.set(xlabel='Distribution of short read lengths', ylabel='Frequency')
-plt.show()
-
-# Store the contents into a json file
-
-with open('normallydistributedreads.json','w') as jsonfile:
-    json.dump(readDict,jsonfile)
+with open('normallydistributedreads.fasta', 'w') as fastafile:
+    SeqIO.write(s, fastafile, 'fastq-illumina')
