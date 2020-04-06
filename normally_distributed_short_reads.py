@@ -8,6 +8,9 @@ from scipy.stats import truncnorm
 import re
 
 sequences = []
+read_counter = 0
+total_sequences = list(SeqIO.parse('data.fastq','fasta'))
+sequence_counter = len(total_sequences)
 
 
 def get_truncated_norm(m=0, sd=1, low=0, upp=10):
@@ -17,6 +20,7 @@ def get_truncated_norm(m=0, sd=1, low=0, upp=10):
 def sample_short_reads(mean, standard_dev, sreadLen):
     temp = 0
     for record in SeqIO.parse('data.fastq', 'fastq'):
+        print('%d of %d reads processed...'%(read_counter+1,sequence_counter))
         longReadLength = len(record.seq)
         counter = 0
         readCounter = 0
@@ -47,6 +51,7 @@ def sample_short_reads(mean, standard_dev, sreadLen):
         temp += 1
         print(longReadLength, boundary)
         print(longReadLength - boundary)
+        read_counter+1
     return sequences
 
 
