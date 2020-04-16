@@ -10,7 +10,7 @@ import re
 sequences = []
 read_counter = 0
 
-all_sequences = list(SeqIO.parse('data.fastq', 'fasta'))
+all_sequences = list(SeqIO.parse('data.fastq', 'fastq'))
 
 
 def get_truncated_norm(m=0, sd=1, low=0, upp=10):
@@ -42,20 +42,21 @@ def sample_short_reads(mean, standard_dev, sreadLen):
                 idr2 = record.id + '_' + str(readCounter + sreadLen + int(insertSize)) + '_' + 'r2'
                 sequences.append(SeqRecord(r2, id=idr2, letter_annotations={'phred_quality': q2}))
                 boundary = readCounter + sreadLen + int(insertSize) + sreadLen
-                readCounter += 1
+                readCounter += sreadLen
                 continue
             else:
                 counter = 1
 
         temp += 1
-        print(longReadLength, boundary)
-        print(longReadLength - boundary)
+        print(temp)
+        # print(longReadLength, boundary)
+        # print(longReadLength-boundary)
     return sequences
 
 
-s = sample_short_reads(250, 1, 95)
+s = sample_short_reads(250, 1, 110)
 
 # Store the contents into a fastq file
 
-with open('normallydistributedreads.fasta', 'w') as fastafile:
+with open('normallydistributedreads.fastq', 'w') as fastafile:
     SeqIO.write(s, fastafile, 'fastq-illumina')
